@@ -571,12 +571,12 @@ Tabs["Auto Farm"]:AddToggle("tAutoFlower", {
             local antifall = Instance.new("BodyVelocity")
             antifall.Velocity = Vector3.new(0, 0, 0)
             antifall.Parent = client.Character.HumanoidRootPart
+
             while options["tAutoFlower"].Value do
                 for i, v in workspace.Demon_Flowers_Spawn:GetChildren() do
                     if v:IsA("Model") and options["tAutoFlower"].Value then
                         pcall(function()
                             tweento(v:GetModelCFrame()).Completed:Wait()
-                            v["Cube.002"].CFrame = v["Cube.002"].CFrame * CFrame.new(0, 5, 0)
                             task.wait(0.5)
                             fireproximityprompt(v["Cube.002"].Pick_Demon_Flower_Thing)
                             task.wait(0.5)
@@ -584,6 +584,7 @@ Tabs["Auto Farm"]:AddToggle("tAutoFlower", {
                     end
                 end
             end
+
             _conn:Disconnect()
             antifall:Destroy()
         end
@@ -674,57 +675,6 @@ task.spawn(function()
 end)
 
 
-
-
-
-
-
-
-
-
-Tabs["Kill Auras"]:AddToggle("tArrowKAOPNPC", {
-    Title = 'Arrow KA (Farming The Greatest)',
-    Default = false,
-    Callback = function(Value)
-        if Value then
-            task.spawn(function()
-                while options.tArrowKAOPNPC.Value do 
-                    for _, npc in pairs(workspace:GetDescendants()) do
-                        if npc:IsA("Model") and npc.Name == "OP_NPC" and npc:FindFirstChild("HumanoidRootPart") then
-                            local args = {
-                                [1] = "arrow_knock_back_damage",
-                                [2] = client.Character,
-                                [3] = npc:GetModelCFrame(),
-                                [4] = npc,
-                                [5] = math.huge,
-                                [6] = math.huge
-                            }
-
-                            Handle_Initiate_S:FireServer(unpack(args))
-                            task.wait(0.2)  -- ajustá este tiempo si querés más lento/rápido
-                        end
-                    end
-                end
-            end)
-        end
-    end
-})
-
-task.spawn(function()
-    while true do
-        if options.tArrowKAOPNPC and options.tArrowKAOPNPC.Value then
-            local args = {
-                [1] = "skil_ting_asd",
-                [2] = client,
-                [3] = "arrow_knock_back",
-                [4] = 5
-            }
-            Handle_Initiate_S_:InvokeServer(unpack(args))
-            task.wait(6)
-        end
-        task.wait()
-    end
-end)
 
 Tabs["Kill Auras"]:AddSlider("sM1HitsPerWeapon", {
     Title = "Hits Per Weapon (Auto M1 All)",
@@ -1258,6 +1208,7 @@ task.spawn(function()
 end)
 
 --Misc
+
 Tabs["Misc"]:AddToggle("tAutoSoul", {
     Title = "Auto Eat Soul";
     Default = false;
@@ -1276,6 +1227,83 @@ Tabs["Misc"]:AddToggle("tAutoSoul", {
         end
     end
 })
+
+Tabs["Misc"]:AddToggle("tAntiAFK", {
+    Title = "Anti-AFK (Global)",
+    Default = true,
+    Callback = function(Value)
+        if Value then
+            task.spawn(function()
+                while options.tAntiAFK.Value do
+                    local hrp = client.Character and client.Character:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, 0.1)
+                        task.wait(1)
+                        hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -0.1)
+                    end
+                    task.wait(10)
+                end
+            end)
+        end
+    end
+})
+local VIM = game:GetService("VirtualInputManager")
+
+-- Variables de control
+local runningKeySpam = false
+local selectedKey = Enum.KeyCode.E
+local delayBetweenPresses = 0.2
+
+-- UI en pestaña Misc
+Tabs["Misc"]:AddToggle("tAutoKeyPress", {
+    Title = "Auto Key Press";
+    Default = false;
+    Callback = function(Value)
+        runningKeySpam = Value
+
+        if Value then
+            task.spawn(function()
+                while runningKeySpam and task.wait(delayBetweenPresses) do
+                    VIM:SendKeyEvent(true, selectedKey, false, game)
+                    task.wait(0.05)
+                    VIM:SendKeyEvent(false, selectedKey, false, game)
+                end
+            end)
+        end
+    end
+})
+
+Tabs["Misc"]:AddSlider("sAutoKeyDelay", {
+    Title = "Key Press Delay (sec)",
+    Description = "Delay between each key press",
+    Default = 0.2,
+    Min = 0.05,
+    Max = 1,
+    Rounding = 2,
+    Callback = function(Value)
+        delayBetweenPresses = Value
+    end
+})
+
+Tabs["Misc"]:AddDropdown("dKeySelector", {
+    Title = "Key to Press",
+    Values = {
+        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
+        "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
+        "U", "V", "W", "X", "Y", "Z"
+    },
+    Multi = false,
+    Default = "E",
+    Callback = function(Value)
+        selectedKey = Enum.KeyCode[Value]
+    end
+})
+
+
+
+
+
+
 
 Tabs["Misc"]:AddButton({
     Title = "Teleport To Muzan";
@@ -1336,31 +1364,64 @@ Tabs["Misc"]:AddButton({
     end
 })
 
-Tabs["Misc"]:AddToggle("tAntiAFK", {
-    Title = "Anti-AFK (Global)",
-    Default = true,
-    Callback = function(Value)
-        if Value then
-            task.spawn(function()
-                while options.tAntiAFK.Value do
-                    -- ⛹️ Simula salto
-                    VIM:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
-                    task.wait(0.05)
-                    VIM:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
 
-                    -- 🎯 Gira un poquito la cámara (mouse deltas)
-                    VIM:SendMouseMoveEvent(math.random(-3, 3), math.random(-3, 3), false)
+Tabs["Misc"]:AddButton({
+    Title = "View Progress";
+    Description = "View Demon And Slayer Progress For Free";
+    Callback = function()
+        local unlock = Instance.new("Part")
+        unlock.Name = "18589360"
+        unlock.Parent = client.gamepasses
+    end
+})
+Tabs["Misc"]:AddButton({
+    Title = "Unlock Fast Spins";
+    Description = "For Clans And Bda Only";
+    Callback = function()
+        local unlock = Instance.new("Part")
+        unlock.Name = "46503236"
+        unlock.Parent = client.gamepasses
+    end
+})
 
-                    -- 🖱️ Click derecho (M2)
-                    VIM:SendMouseButtonEvent(0, 1, true, game, 0)
-                    task.wait(0.1)
-                    VIM:SendMouseButtonEvent(0, 1, false, game, 0)
+Tabs["Misc"]:AddButton({
+    Title = "Gourd Progress Viewer";
+    Description = "See Your Gourd Progress For Free";
+    Callback = function()
+        local unlock = Instance.new("Part")
+        unlock.Name = "19241624"
+        unlock.Parent = client.gamepasses
+    end
+})
 
-                    -- 🕓 Espera random para parecer humano
-                    task.wait(math.random(25, 40))
-                end
-            end)
-        end
+
+Tabs["Misc"]:AddButton({
+    Title = "Unlock Emotes";
+    Description = "Unlocks The First Pack of Emotes";
+    Callback = function()
+        local unlock = Instance.new("Part")
+        unlock.Name = "42670615"
+        unlock.Parent = client.gamepasses
+    end
+})
+
+Tabs["Misc"]:AddButton({
+    Title = "Unlock Emotes 2";
+    Description = "Unlocks The Second Pack of Emotes";
+    Callback = function()
+        local unlock = Instance.new("Part")
+        unlock.Name = "178295110"
+        unlock.Parent = client.gamepasses
+    end
+})
+
+Tabs["Misc"]:AddButton({
+    Title = "Unlocks Locater";
+    Description = "Unlocks The Muzan Notifier Gamepass";
+    Callback = function()
+        local unlock = Instance.new("Part")
+        unlock.Name = "17958345"
+        unlock.Parent = client.gamepasses
     end
 })
 
@@ -1739,3 +1800,4 @@ Tabs["Settings"]:AddToggle("tAutoExec", {
 SaveManager:LoadAutoloadConfig()
 
 Window:SelectTab(1)
+
