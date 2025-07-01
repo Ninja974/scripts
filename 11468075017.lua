@@ -454,44 +454,6 @@ Tabs["Kill Auras"]:AddToggle("tArrowKA", {
 })
 
 
-Tabs["Kill Auras"]:AddToggle("tPiercingArrow", {
-    Title = 'Bring Mobs',
-    Default = false,
-    Callback = function(Value)
-        if Value then
-            task.spawn(function()
-                while options.tPiercingArrow.Value do 
-                    local target = findMob(true)
-                    if target then
-                        repeat task.wait()
-                            local args = {
-                                [1] = "piercing_arrow_damage",
-                                [2] = client,
-                                [3] = target:GetModelCFrame(),
-                                [4] = math.huge
-                            }
-                            game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
-                        until target.Humanoid.Health <= 0 or not options.tPiercingArrow.Value
-                    end
-                    task.wait()
-                end
-            end)
-            task.spawn(function()
-                while options.tPiercingArrow.Value do
-                    local args = {
-                        [1] = "skil_ting_asd",
-                        [2] = client,
-                        [3] = "arrow_knock_back",
-                        [4] = 5
-                    }
-                    game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
-                    task.wait(6)
-                end
-            end)
-        end
-    end
-})
-
 local VIM = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
 
