@@ -319,63 +319,88 @@ Tabs["Auto Farm"]:AddToggle("tAutoChest", {
     end
 })
 
--- Slider para delay
-Tabs["Kill Auras"]:AddSlider("sArrowKADelay", {
-    Title = "Arrow KA Delay",
-    Description = "Time between hits (in seconds)",
-    Default = 0.5,
-    Min = 0.2,
-    Max = 10,
-    Rounding = 2,
-})
-
+-- KILL AURAS
 Tabs["Kill Auras"]:AddToggle("tArrowKA", {
     Title = 'Arrow KA',
     Default = false,
     Callback = function(Value)
         if Value then
-            -- Loop ataque principal
+            if options["tBringMob"].Value then
+                Library:Notify({
+                    Title = "Attention",
+                    Content = "You'r succeptible to get kicked if you use two different KA",
+                    Duration = 5
+                })
+            end
             task.spawn(function()
-                while options.tArrowKA.Value do
-                    if not client.PlayerGui:FindFirstChild("Downed_UI", true) then
-                        local mob = findMob(true)
-                        if mob then
-                            local args = {
-                                [1] = "arrow_knock_back_damage",
-                                [2] = client.Character,
-                                [3] = mob:GetModelCFrame(),
-                                [4] = mob,
-                                [5] = 200,
-                                [6] = 200
-                            }
-                            Handle_Initiate_S:FireServer(unpack(args))
-                        end
-                    end
-                    task.wait(options.sArrowKADelay.Value)
-                end
-            end)
-
-            -- Loop para skill support (arrow_knock_back)
-            task.spawn(function()
-                while options.tArrowKA.Value do
-                    if not client.PlayerGui:FindFirstChild("Downed_UI", true) then
+                while options.tArrowKA.Value do 
+                    local target = findMob(true)
+                    if target then
                         local args = {
-                            [1] = "skil_ting_asd",
-                            [2] = client,
-                            [3] = "arrow_knock_back",
-                            [4] = 5
+                            [1] = "arrow_knock_back_damage",
+                            [2] = client.Character,
+                            [3] = target:GetModelCFrame(),
+                            [4] = target,
+                            [5] = math.huge,
+                            [6] = math.huge
                         }
-                        Handle_Initiate_S:InvokeServer(unpack(args))
+
+                        Handle_Initiate_S:FireServer(unpack(args))
                     end
-                    task.wait(6.5)
+                    task.wait(0.2)
                 end
             end)
         end
     end
 })
 
+Tabs["Kill Auras"]:AddToggle("tBringMob", {
+    Title = 'Arrow Bring Mob',
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            if options["tArrowKA"].Value then
+                Library:Notify({
+                    Title = "Attention",
+                    Content = "You'r succeptible to get kicked if you use two different KA",
+                    Duration = 5
+                })
+            end
+            task.spawn(function()
+                while options.tBringMob.Value do 
+                    local target = findMob(true)
+                    if target then
+                        local args = {
+                            [1] = "piercing_arrow_damage",
+                            [2] = client,
+                            [3] = target:GetModelCFrame()
+                        }
+                        Handle_Initiate_S:FireServer(unpack(args))
+                        task.wait(0.2)
+                    else
+                        task.wait()
+                    end
+                end
+            end)
+        end
+    end
+})
 
-
+task.spawn(function()
+    while true do
+        if options.tBringMob.Value or options.tArrowKA.Value then
+            local args = {
+                [1] = "skil_ting_asd",
+                [2] = client,
+                [3] = "arrow_knock_back",
+                [4] = 5
+            }
+            Handle_Initiate_S_:InvokeServer(unpack(args))
+            task.wait(6)
+        end
+        task.wait()
+    end
+end)
 
 -- BUFFS
 
