@@ -1320,6 +1320,31 @@ Tabs["Misc"]:AddButton({
         game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("To_Server"):WaitForChild("Handle_Initiate_S_"):InvokeServer(unpack(args))
     end
 })
+
+Tabs['Misc']:AddButton({
+    Title = 'Auto Enmu Clash',
+    Description = 'This Gets u the title of "Button Masher"'
+    Callback = function()
+        local player = game.Players.LocalPlayer
+local name = player.Name
+
+local target = workspace:WaitForChild("Debree")
+    :WaitForChild("clash_folder")
+    :WaitForChild(name .. "vsEnmu")
+    :WaitForChild(name)
+
+local args = {
+    [1] = "Change_Value", -- or whatever your FireServer expects (you said this works)
+    [2] = target,
+    [3] = 100
+}
+
+game:GetService("ReplicatedStorage")
+    :WaitForChild("Remotes")
+    :WaitForChild("To_Server")
+    :WaitForChild("Handle_Initiate_S")
+    :FireServer(unpack(args))
+})
 -- BUFFS
 
 local skillMod = require(game:GetService("ReplicatedStorage").Modules.Server.Skills_Modules_Handler).Skills
