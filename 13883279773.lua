@@ -1332,7 +1332,7 @@ Tabs["Misc"]:AddButton({
     Callback = function()
         local args = {
             [1] = "Quest_add",
-            [2] = `Players.{client.Name}.PlayerGui.Npc_Dialogue.LocalScript.Functions`,
+            [2] = "Players.{client.Name}.PlayerGui.Npc_Dialogue.LocalScript.Functions",
             [3] = os.clock(),
             [4] = {},
             [5] = client,
@@ -1425,6 +1425,117 @@ Tabs["Misc"]:AddButton({
     end
 })
 
+-- === SELL ITEMS GUI ===
+local cansell_items = {
+    "Mist Katana",
+    "Flame Katana",
+    "Scythe",
+    "War Fans",
+    "Tigress Warding Mask",
+    "Banigaru Mask",
+    "Tonaki Keikai Mask",
+    "Uncertained Times Scarf",
+    "Vigilante Scarf",
+    "Kesshoseki Necklace",
+    "Inosuke Bottom",
+    "Akai Kumo Haorie",
+    "Boroboro Haorie",
+    "Kanden Shi Haorie",
+    "Murasakiiro Sutoraipu Haorie",
+    "Tokosen Haorie"
+}
+
+local selectedItemToSell = cansell_items[1]
+local selectedAmountToSell = 1
+
+Tabs["Misc"]:AddDropdown("dSellItem", {
+    Title = "Select Item to Sell",
+    Values = cansell_items,
+    Default = cansell_items[1],
+    Multi = false,
+    Callback = function(Value)
+        selectedItemToSell = Value
+    end
+})
+
+Tabs["Misc"]:AddInput("iSellAmount", {
+    Title = "Amount to Sell",
+    Default = "1",
+    Placeholder = "How many?",
+    Numeric = true,
+    Finished = true,
+    Callback = function(Value)
+        local num = tonumber(Value)
+        if num and num > 0 then
+            selectedAmountToSell = num
+        else
+            Library:Notify({
+                Title = "Invalid Amount",
+                Content = "Amount must be a number > 0",
+                Duration = 3
+            })
+        end
+    end
+})
+
+Tabs["Misc"]:AddButton({
+    Title = "Sell Selected Item Now",
+    Description = "Sells the selected item with the specified amount",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local inv = game:GetService("ReplicatedStorage").Player_Data:FindFirstChild(player.Name).Inventory.Items
+
+        local found = nil
+        for _, v in pairs(inv:GetChildren()) do
+            if v.Name == selectedItemToSell then
+                found = v
+                break
+            end
+        end
+
+        if found then
+            local rarity = found.Settings.Rarity.Value
+            local function getprice(rar)
+                if rar == "Rare" then
+                    return 500
+                elseif rar == "Mythic" then
+                    return 3500
+                elseif rar == "Supreme" then
+                    return 5000
+                elseif rar == "Devourer" or rar == "Polar" then
+                    return 6000
+                else
+                    return 0
+                end
+            end
+
+            local price = getprice(rarity) * selectedAmountToSell
+            local selling = {}
+            selling[found.Settings.Id.Value] = selectedAmountToSell
+
+            local args = {
+                [1] = selling,
+                [2] = math.floor(price / 25000),
+                [3] = 0
+            }
+
+            game:GetService("ReplicatedStorage"):WaitForChild("Sell_Items_tang"):InvokeServer(unpack(args))
+
+            Library:Notify({
+                Title = "Sell Items",
+                Content = "Sold {selectedAmountToSell}x {selectedItemToSell} for ~{math.floor(price/25000)}",
+                Duration = 4
+            })
+        else
+            Library:Notify({
+                Title = "Sell Items",
+                Content = "You don't have any {selectedItemToSell} in your inventory",
+                Duration = 4
+            })
+        end
+    end
+})
+
 -- QUESTS
 
 Tabs["Quests"]:AddSection("All These Functions Will Use A Smart Tp That Use Your Unlocked Map Location")
@@ -1444,7 +1555,7 @@ Tabs["Quests"]:AddToggle("tAutoRice", {
                     task.wait(0.2)
                     local args = {
                         [1] = "AddQuest",
-                        [2] = `Players.{client.Name}.PlayerGui.Npc_Dialogue.LocalScript.Functions`,
+                        [2] = "Players.{client.Name}.PlayerGui.Npc_Dialogue.LocalScript.Functions",
                         [3] = os.clock(),
                         [4] = playerData:WaitForChild("Quest"),
                         [5] = {
@@ -1461,7 +1572,7 @@ Tabs["Quests"]:AddToggle("tAutoRice", {
                             task.wait(0.2)
                             local args = {
                                 [1] = "givericequestthing",
-                                [2] = `Players.{client.Name}.PlayerGui.localscript_cache.Prompts_Handler`,
+                                [2] = "Players.{client.Name}.PlayerGui.localscript_cache.Prompts_Handler",
                                 [3] = client,
                                 [4] = rice,
                                 [5] = os.clock()
